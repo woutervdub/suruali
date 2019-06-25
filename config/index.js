@@ -24,12 +24,33 @@ export default {
   optionGroups: {
     fit: ["size"]
   },
-  measurements: [],
+  measurements: [
+    "naturalWaist",
+    "hipsCircumference",
+    "seatCircumference",
+    "naturalWaistToHip",
+    "naturalWaistToSeat",
+    "naturalWaistToKnee"
+  ],
   dependencies: {},
   inject: {},
   hide: [],
-  parts: ["box"],
+  parts: ["front","back","waistBand"],
   options: {
-    size: { pct: 50, min: 10, max: 100 }
+    lengthBonus: { pct: 0, min: -50, max: 50 },
+    hemBonus: { pct: 0, min: -35, max: 0 },
+    backVent: { count: 0, min: 0, max: 1},
+    backVentLength: { pct: 10, min: 5, max: 70 },
+    waistBand: { count: 1, min: 0, max: 1},
+    waistBandWidth: { pct: 5, min: 5, max: 15 },
+    zipperLocation: { dflt: "backSeam", list: ["backSeam", "sideSeam"]},
+    nrOfDarts: { count: 2, min: 1, max: 2},
+
+    seatEase: { pct: 5, min: 0, max: 10 },
+    waistEase: { pct: 5, min: 0, max: 10 },
+    waistSideSeamRaise: { pct: 0, min: 0, max: 10 },
+    backDartDepthFactor: { pct: 50, min: 35, max: 70 },
+    frontDartDepthFactor: { pct: 45, min: 30, max: 65 },
+    dartToSideSeamFactor: { pct: 50, min: 30, max: 70 },
   }
 };
