@@ -1,8 +1,9 @@
 function dartCalcFront(options, seatWaistDiff, nrOfDarts) {
+  console.log( "F: seatWaistDiff: " +seatWaistDiff +" nrOfDarts: " +nrOfDarts );
   return (
     ((options.dartMinimumWidth +
-      (max(
-        min(seatWaistDiff, options.dartMaximumDifference),
+      (Math.max(
+        Math.min(seatWaistDiff, options.dartMaximumDifference),
         options.dartMinimumDifference
       ) -
         options.dartMinimumDifference) /
@@ -13,6 +14,8 @@ function dartCalcFront(options, seatWaistDiff, nrOfDarts) {
 }
 
 function dartCalcBack(options, seatWaistDiff, nrOfDarts) {
+  console.log( "B: seatWaistDiff: " +seatWaistDiff +" nrOfDarts: " +nrOfDarts );
+
   return (
     ((options.dartMinimumWidth +
       (seatWaistDiff -
@@ -27,17 +30,19 @@ function dartCalcBack(options, seatWaistDiff, nrOfDarts) {
 function dartCalc(options, seat, seatEase, waist, waistEase) {
   seat += seatEase;
   waist += waistEase;
-  seatWaistDiff = max(seat - waist, 0);
+  let seatWaistDiff = Math.max(seat - waist, 0);
   options.seatWaistDiff = seatWaistDiff;
 
-  nrOfDarts = options.nrOfDarts;
+  let nrOfDarts = options.nrOfDarts;
 
-  frontDartSize = dartCalcFront(options, seatWaistDiff, nrOfDarts);
+  let frontDartSize = dartCalcFront(options, seatWaistDiff, nrOfDarts);
 
-  // If the front darts are too small and we have more than one, remove one.
+  
+  console.log( {frontDartSize: frontDartSize, dartMinimumWidth: options.dartMinimumWidth, nrOfDarts: nrOfDarts} );
+    // If the front darts are too small and we have more than one, remove one.
   if (frontDartSize <= options.dartMinimumWidth * nrOfDarts && nrOfDarts > 1) {
     nrOfDarts--;
-    frontDartSize = dartCalcFront(seatWaistDiff, nrOfDarts);
+    frontDartSize = dartCalcFront(options, seatWaistDiff, nrOfDarts);
   }
 
   // See if the dart created by the side seam becomes too small:
@@ -48,7 +53,7 @@ function dartCalc(options, seat, seatEase, waist, waistEase) {
   //            nrOfDarts = 1;
   //        }
 
-  backDartSize = dartCalcBack(seatWaistDiff, nrOfDarts);
+  let backDartSize = dartCalcBack(options, seatWaistDiff, nrOfDarts);
   // If the back darts are too small and we have more than one, remove one.
   if (backDartSize < options.dartMinimumWidth * nrOfDarts && nrOfDarts > 1) {
     nrOfDarts = 1;
@@ -62,39 +67,54 @@ function dartCalc(options, seat, seatEase, waist, waistEase) {
 }
 
 /**
- * Method to add a dart onto a curveLen
+ * Method to add a dart onto a curve
  * The dart is added at an 90 degree angle with the curve for a certain depth and Width
- * @param part $p                   The part to which the points will be added
- * @param point $p1, $p2, $p3, $p4  The points defining the curve
- * @param float $distance           Distance from $p1 where the middle of the dart will be
- * @param float $dartSize1          The width of the dart opening at the curve
- * @param float $dartDepth          The depth of the dart
- * @param string $prefix            The prefix for the new points to be added
+ * @param part             The part that will provide that Paths
+ * @param curvePath        The curve the dart needs to divide
+ * @param distance         Distance from $p1 where the middle of the dart will be
+ * @param dartSize         The width of the dart opening at the curve
+ * @param dartDepth        The depth of the dart
  *
- * @return nothing                  Adds points to the $part
+ * @return                 Object with three path attributes; left, dart, right
  */
-function addDartToCurve(curvePath, distance, dartSize, dartDepth) {
+function addDartToCurve(part, curvePath, distance, dartSize, dartDepth) {
   let dartMiddle = curvePath.shiftAlong(distance);
-
+  
   let curvePaths = curvePath.split(dartMiddle);
   let dartLeft = curvePaths[0].reverse().shiftAlong(dartSize / 2);
   let dartRight = curvePaths[1].shiftAlong(dartSize / 2);
 
-  let dartBottom = dartMiddle.shift(dartLeft.angle(dartRight) - 90, dartDepth);
+  let distanceFactor = 0.15;
+  let leftCPdistance = Math.min( curvePaths[0].length() *distanceFactor, curvePaths[0].ops[1].to.dist(curvePaths[0].ops[1].cp2));
+  let rightCPdistance = Math.min( curvePaths[1].length() *distanceFactor, curvePaths[1].ops[0].to.dist(curvePaths[1].ops[1].cp1));
+
+  let dartBottom = dartMiddle.shift(dartLeft.angle(dartRight) -90, dartDepth);
+
+  let leftDartCP = dartLeft.shift(dartLeft.angle(dartBottom) -90, leftCPdistance );
+  let rightDartCP = dartRight.shift(dartRight.angle(dartBottom) +90, rightCPdistance );
 
   let curvePathsLeft = curvePaths[0].split(dartLeft);
   let curvePathsRight = curvePaths[1].split(dartRight);
 
-  let curveLeftOfDart = curvePathsLeft[0];
-  let curveRightOfDart = curvePathsRight[1];
+  let curveLeftOfDart = new part.Path().move(curvePaths[0].ops[0].to).curve(curvePaths[0].ops[1].cp1,leftDartCP,dartLeft)   //curvePathsLeft[0];
+  let curveRightOfDart = new part.Path().move(dartRight).curve(rightDartCP, curvePaths[1].ops[1].cp2,curvePaths[1].ops[1].to)   //curvePathsLeft[0];
+  curveLeftOfDart.render = false;
+  curveRightOfDart.render = false;
 
-  let curveWithDart = new Path()
-    .join(curveLeftOfDart)
-    .line(dartBottom)
-    .Line(dartRight)
-    .join(curveRightOfDart);
+  let dart = new part.Path().move( dartLeft ).line( dartBottom ).line( dartRight );
+  dart.render = false;
+  
+  let curveWithDart = {left: curveLeftOfDart, dart: dart, right: curveRightOfDart };
+
+  /*
+  part.points.dartMiddle = dartMiddle ;
+  part.points.dartLeft = dartLeft ;
+  part.points.dartRight = dartRight ;
+  part.points.dartBottom = dartBottom ;
+  */
 
   return( curveWithDart );
 }
 
 export { addDartToCurve, dartCalc };
+ 

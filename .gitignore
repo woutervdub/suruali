@@ -1,0 +1,4 @@
+node_modules/
+example/_node_modules/
+dist
+dist/

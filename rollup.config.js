@@ -37,7 +37,7 @@ export default {
     }),
     resolve({ browser: true }),
     json(),
-    commonjs(),
+    commonjs()//,
 //    minify({
 //      comments: false,
 //      sourceMap: true,

@@ -22,7 +22,22 @@ export default {
     "sewing pattern"
   ],
   optionGroups: {
-    fit: ["size"]
+    fit: [
+      "lengthBonus",
+      "hemBonus",
+      "backVent",
+      "backVentLength",
+      "waistBand",
+      "waistBandWidth",
+      "zipperLocation",
+      "seatEase",
+      "waistEase",
+      "nrOfDarts",
+      "waistSideSeamRaise",
+      "backDartDepthFactor",
+      "frontDartDepthFactor",
+      "dartToSideSeamFactor"
+    ]
   },
   measurements: [
     "naturalWaist",
@@ -35,8 +50,18 @@ export default {
   dependencies: {},
   inject: {},
   hide: [],
-  parts: ["front" /*, "back", "waistBand"*/],
+  parts: ["front", "back" /*, "waistBand"*/],
   options: {
+    dartMaximumDifference: 300,
+    dartMinimumDifference: 180,
+    dartMinimumWidth: 6,
+    dartSideMinimum: 10,
+    dartBackControl1: 100,
+    dartBackControl2: 5,
+    dartBackControl3: 4,
+    curvePlacement: 2.4,
+    dart2offset: 32,
+    dart2factor: 0.80,
     lengthBonus: { pct: 0, min: -50, max: 50 },
     hemBonus: { pct: 0, min: -35, max: 0 },
     backVent: { bool: false },
