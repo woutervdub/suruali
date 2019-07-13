@@ -1,28 +1,30 @@
 import { addDartToCurve, dartCalc } from "./utils";
 
 function BuildMainShape(part, frontPart) {
-    let {
-        options,
-        measurements,
-        Point,
-        Path,
-        points,
-        paths,
-        Snippet,
-        snippets,
-        store,
-        complete,
-        sa,
-        paperless,
-        macro
-      } = part.shorthand();
-    
+  let {
+    options,
+    measurements,
+    Point,
+    Path,
+    points,
+    paths,
+    Snippet,
+    snippets,
+    store,
+    complete,
+    sa,
+    paperless,
+    macro
+  } = part.shorthand();
 
-  let skirtLength = measurements.naturalWaistToKnee + options.lengthBonus;
+  let skirtLength =
+    measurements.naturalWaistToKnee + options.lengthBonus + options.hem;
   let waistEase = options.waistEase;
   let seatEase = options.seatEase;
 
-  let dartDepthFactor = (frontPart ? options.frontDartDepthFactor : options.backDartDepthFactor);
+  let dartDepthFactor = frontPart
+    ? options.frontDartDepthFactor
+    : options.backDartDepthFactor;
 
   let waist = measurements.naturalWaist;
   let seat =
@@ -95,7 +97,7 @@ function BuildMainShape(part, frontPart) {
     sideSeam,
     (measurements.naturalWaistToSeat / 3) * 2
   );
-  //$p->addPoint('pC2d', $p->shift('pC2', 270, ($model->m('naturalWaistToSeat') - $model->m('naturalWaistToHip'))*(abs($this->o('hemBonus'))/HIP_CURVE_DIV_DOWN)));
+  points.rLegCP = new Point( points.rSeat.shift( 270, (measurements.naturalWaistToSeat - measurements.naturalWaistToHip)*(Math.abs(options.hemBonus))/options.hipCurveDividerDown));
   //$p->newPoint('pH',   $sideSeam, $model->m('naturalWaistToHip') -$this->o('waistSideSeamRise'));
   let waistFactor = 0.99;
   let sideFactor = 0.97;
@@ -104,24 +106,12 @@ function BuildMainShape(part, frontPart) {
   let iteration = 0;
   let waistCurve = null;
   let waistPath = null;
+  let waistPathSA = null;
   let waistLength = 0;
   let sideSeamPath = null;
   let sideSeamLength = 0;
   let curve1 = null;
   let curve2 = null;
-
-  let lWaist = points.lWaist.copy();
-  let rWaistTemp1 = lWaist.shift(0, (waist / 4) * waistFactor);
-  let rWaistTemp2 = rWaistTemp1.shift(0, 0 /*dartSize*nrOfDarts*/);
-  let rWaist = rWaistTemp2.shift(90, 16 /* * sideFactor */);
-  let lWaistCP = lWaist.shift(0, seat / 12);
-  let rWaistCPleft = rWaist.shift(
-    rWaist.angle(points.rWaistCPdown) - 90,
-    waist / 16
-  );
-  let waistCurveHelper = new Path()
-    .move(lWaist)
-    .curve(lWaistCP, rWaistCPleft, rWaist);
 
   do {
     if (wdelta < -1) {
@@ -180,10 +170,9 @@ function BuildMainShape(part, frontPart) {
         waistLength += curve2.left.length();
         waistLength += curve2.right.length();
         waistPath = curve1.left.join(
-            curve1.dart.join(curve2.left.join(curve2.dart.join(curve2.right))));
-            waistPathSA = curve1.left.join(
-                curve2.left.join(curve2.right)
-                );
+          curve1.dart.join(curve2.left.join(curve2.dart.join(curve2.right)))
+        );
+        waistPathSA = curve1.left.join(curve2.left.join(curve2.right));
       } else {
         waistLength += curve1.right.length();
         waistPath = curve1.left.join(curve1.dart.join(curve1.right));
@@ -200,6 +189,8 @@ function BuildMainShape(part, frontPart) {
       .line(points.rSeat)
       .curve(points.rSeatCP, points.rWaistCPdown, points.rWaist);
 
+    console.log( sideSeamPath );
+    
     wdelta = waist / 4 - waistLength;
 
     if (frontPart) {
@@ -235,7 +226,6 @@ function BuildMainShape(part, frontPart) {
     console.log("back sideseam length: " + sideSeamLength);
   }
 
-
   /*  
 $p->addPoint('pHemRD', $p->shift('pB2',   270, $this->o('sa') +HEM_DEPTH));
 $p->addPoint('pHemRR', $p->shift('pHemRD',   0, $this->o('sa')));
@@ -267,6 +257,14 @@ $p->paths['outline']->setSample(true);
 $p->newPath('outlineSA', $pathStringSA, ['class' => 'hidden']);
 $p->paths['outlineSA']->setSample(false);
 */
+  paths.bottom = new Path().move(points.lLeg).line(points.rLeg);
+  paths.bottom.render = false;
+
+  if (options.hem > 0) {
+    paths.hem = paths.bottom
+      .offset( -1 * options.hem)
+      .attr("class", "fabric stroke-sm");
+  }
 
   paths.seam = new Path()
     .move(points.lWaist)

@@ -24,7 +24,7 @@ export default {
   optionGroups: {
     fit: [
       "lengthBonus",
-      "hemBonus",
+      "hem",
       "backVent",
       "backVentLength",
       "waistBand",
@@ -62,8 +62,11 @@ export default {
     curvePlacement: 2.4,
     dart2offset: 32,
     dart2factor: 0.80,
+    hipCurveDividerDown: 40,
+    hipCurveDividerUp: 3,
     lengthBonus: { pct: 0, min: -50, max: 50 },
     hemBonus: { pct: 0, min: -35, max: 0 },
+    hem: { mm: 25, min: 0, max: 75 },
     backVent: { bool: false },
     backVentLength: { pct: 10, min: 5, max: 70 },
     waistBand: { bool: true },
