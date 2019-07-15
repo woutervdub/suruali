@@ -64,6 +64,7 @@ export default {
     dart2factor: 0.80,
     hipCurveDividerDown: 40,
     hipCurveDividerUp: 3,
+    sideSeamShiftPercentage: 0.006,
     lengthBonus: { pct: 0, min: -50, max: 50 },
     hemBonus: { pct: 0, min: -35, max: 0 },
     hem: { mm: 25, min: 0, max: 75 },

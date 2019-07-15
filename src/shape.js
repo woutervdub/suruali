@@ -57,9 +57,8 @@ function BuildMainShape(part, frontPart) {
 
   console.log("dartSize: " + dartSize + " nrOfDarts: " + nrOfDarts);
 
-  // FIX! Not ant-man compatible
-  let sideSeamShift = frontPart ? -6 : 6;
-
+  let sideSeamShift = (frontPart ? -1 : 1) * options.sideSeamShiftPercentage * seat;
+  
   seat += seatEase;
   waist += waistEase;
 
@@ -69,15 +68,15 @@ function BuildMainShape(part, frontPart) {
   points.lWaist = new Point(0, 0);
   points.lLeg = new Point(0, skirtLength);
   points.rWaistOriginal = new Point(sideSeam, 0);
-  points.rLeg = new Point(sideSeam + options.hemBonus, skirtLength);
+  points.rLeg = new Point(sideSeam + (options.hemBonus * seat /10), skirtLength);
 
   let boxExtra = 30;
   points.boxTL = new Point(-boxExtra, -boxExtra);
-  points.boxTR = new Point(sideSeam + options.hemBonus + boxExtra, -boxExtra);
-  points.boxBL = new Point(-boxExtra, skirtLength + boxExtra);
+  points.boxTR = new Point(sideSeam + boxExtra, -boxExtra);
+  points.boxBL = new Point(-boxExtra, skirtLength +options.hem + boxExtra);
   points.boxBR = new Point(
-    sideSeam + options.hemBonus + boxExtra,
-    skirtLength + boxExtra
+    sideSeam + boxExtra,
+    skirtLength +options.hem + boxExtra
   );
   paths.box = new Path()
     .move(points.boxTL)
@@ -93,11 +92,11 @@ function BuildMainShape(part, frontPart) {
     sideSeam,
     measurements.naturalWaistToSeat / 3
   );
-  points.rSeatCP = new Point(
+  points.rSeatCPup = new Point(
     sideSeam,
     (measurements.naturalWaistToSeat / 3) * 2
   );
-  points.rLegCP = new Point( points.rSeat.shift( 270, (measurements.naturalWaistToSeat - measurements.naturalWaistToHip)*(Math.abs(options.hemBonus))/options.hipCurveDividerDown));
+  points.rSeatCPdown = points.rSeat.shift( 270, (measurements.naturalWaistToSeat - measurements.naturalWaistToHip)*(Math.abs((options.hemBonus * seat /10)))/options.hipCurveDividerDown);
   //$p->newPoint('pH',   $sideSeam, $model->m('naturalWaistToHip') -$this->o('waistSideSeamRise'));
   let waistFactor = 0.99;
   let sideFactor = 0.97;
@@ -186,8 +185,9 @@ function BuildMainShape(part, frontPart) {
 
     sideSeamPath = new Path()
       .move(points.rLeg)
-      .line(points.rSeat)
-      .curve(points.rSeatCP, points.rWaistCPdown, points.rWaist);
+      //.line(points.rSeat)
+      .curve(points.rLeg,points.rSeatCPdown,points.rSeat)
+      .curve(points.rSeatCPup, points.rWaistCPdown, points.rWaist);
 
     console.log( sideSeamPath );
     
@@ -257,19 +257,36 @@ $p->paths['outline']->setSample(true);
 $p->newPath('outlineSA', $pathStringSA, ['class' => 'hidden']);
 $p->paths['outlineSA']->setSample(false);
 */
-  paths.bottom = new Path().move(points.lLeg).line(points.rLeg);
-  paths.bottom.render = false;
 
-  if (options.hem > 0) {
-    paths.hem = paths.bottom
-      .offset( -1 * options.hem)
+points.lHem = points.lLeg;
+points.rHem = points.rLeg;
+
+if (options.hem > 0) {
+    // Create the inverse of the curve from the leg to the waist
+    // Then split it at the hem level
+    points.lHem = points.lLeg.shift( 270, options.hem );
+    let rInverseSeat = points.rSeat.shift( 270, (points.rLeg.y - points.rSeat.y) *2);
+    let rInverseSeatCP = rInverseSeat.shift( 90, points.rSeatCPdown.y - points.rSeat.y);
+    let rInversePath = new Path().move(rInverseSeat).curve( rInverseSeatCP, points.rLeg, points.rLeg);
+    points.rHem = rInversePath.intersectsY(points.lHem.y)[0];
+
+    let sideSeamHemPath = rInversePath.split(points.rHem)[1];
+
+    //points.lLeg = lHem.clone();
+    //points.rLeg = rHem.clone();
+
+    sideSeamPath = sideSeamHemPath.join( sideSeamPath );
+
+    paths.hem = new Path()
+      .move(points.lLeg)
+      .line(points.rLeg)
       .attr("class", "fabric stroke-sm");
   }
 
   paths.seam = new Path()
     .move(points.lWaist)
-    .line(points.lLeg)
-    .line(points.rLeg)
+    .line(points.lHem)
+    .line(points.rHem)
     //.line(points.rWaistOriginal)
     .join(sideSeamPath)
     .join(waistPath)
