@@ -1,6 +1,5 @@
 import { BuildMainShape } from "./shape";
 
-
 export default function(part) {
   let frontPart = true;
 
@@ -20,28 +19,27 @@ export default function(part) {
     macro
   } = part.shorthand();
 
-  BuildMainShape( part, true );
+  BuildMainShape(part, true);
 
   paths.seam = paths.leftSide
     .clone()
-    .join( paths.bottom )
-    .join( paths.sideSeam )
-    .join( paths.waist )
+    .join(paths.bottom)
+    .join(paths.sideSeam)
+    .join(paths.waist)
     .attr("class", "fabric");
-
 
   // Complete?
   if (complete) {
-    macro( "cutonfold", {
+    macro("cutonfold", {
       from: points.lWaist,
       to: points.lLeg,
       margin: 5,
       offset: 10
     });
-          macro( "title", {
-        at: points.titleAnchor,
-        title: '1x ' +'cutOnFold' +' ' +'fromFabric'
-      });
+    macro("title", {
+      at: points.titleAnchor,
+      title: "1x " + "cutOnFold" + " " + "fromFabric"
+    });
 
     /*
     let so = {
@@ -78,38 +76,41 @@ export default function(part) {
       .attr("data-text-class", "center fill-note");
     */
 
-   macro( "title", {
+    macro("title", {
       at: points.titleAnchor,
-      title: '1x ' +'cutOnFold' +' ' +'fromFabric'
+      title: "1x " + "cutOnFold" + " " + "fromFabric"
     });
-    macro( "grainline", { from: points.grainlineTop, to: points.grainlineBottom });
+    macro("grainline", {
+      from: points.grainlineTop,
+      to: points.grainlineBottom
+    });
 
-    points.scaleBox = points.logoAnchor.shift(270,100);
-    macro('scalebox', { at: points.scaleBox });
+    points.scaleBox = points.logoAnchor.shift(270, 100);
+    macro("scalebox", { at: points.scaleBox });
 
-    snippets.logo = new Snippet( "logo", points.logoAnchor );
+    snippets.logo = new Snippet("logo", points.logoAnchor);
 
     if (sa) {
       paths.sa = new Path()
-      .move( points.lHem )
-      .join( paths.bottom
-        .join( paths.sideSeam )
-        .join( paths.waistSA )
-        .offset(sa)
-      )
-      .line( points.lWaist )
-      .attr("class", "fabric sa");
+        .move(points.lHem)
+        .join(
+          paths.bottom
+            .join(paths.sideSeam)
+            .join(paths.waistSA)
+            .offset(sa)
+        )
+        .line(points.lWaist)
+        .attr("class", "fabric sa");
     }
 
-    if( paperless ) {
-      macro( "hd", {
+    if (paperless) {
+      macro("hd", {
         from: points.lHem,
         to: points.rHem,
-        y: points.rHem.y -options.paperlessOffset
+        y: points.rHem.y - options.paperlessOffset
       });
     }
   }
 
   return part;
 }
- 
