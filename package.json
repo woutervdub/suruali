@@ -24,12 +24,12 @@
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@freesewing/components": "^2.0.0-beta.9-2",
-    "@freesewing/core": "^2.0.0-beta.29",
+    "@freesewing/core": "^2.0.0-beta.32",
     "@freesewing/css-theme": "beta",
     "@freesewing/i18n": "beta",
     "@freesewing/mui-theme": "beta",
     "@freesewing/patterns": "beta",
-    "@freesewing/plugin-bundle": "^2.0.0-beta.29",
+    "@freesewing/plugin-bundle": "^2.0.0-beta.32",
     "@freesewing/plugin-bust": "beta",
     "@freesewing/plugin-buttons": "beta",
     "@freesewing/plugin-debug": "beta",
@@ -63,10 +63,10 @@
     "webpack": "4.29.6"
   },
   "dependencies": {
-    "@freesewing/examples": "^2.0.0-beta.29",
-    "@freesewing/pattern-info": "^2.0.0-beta.29",
-    "@freesewing/rendertest": "^2.0.0-beta.29",
-    "@freesewing/tutorial": "^2.0.0-beta.29",
+    "@freesewing/examples": "^2.0.0-beta.32",
+    "@freesewing/pattern-info": "^2.0.0-beta.32",
+    "@freesewing/rendertest": "^2.0.0-beta.32",
+    "@freesewing/tutorial": "^2.0.0-beta.32",
     "axios": "^0.19.0",
     "prismjs": "^1.16.0",
     "typescript": "^3.5.3"

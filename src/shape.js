@@ -19,6 +19,9 @@ function BuildMainShape(part, frontPart) {
 
   let skirtLength =
     measurements.naturalWaistToKnee + options.lengthBonus + options.hem;
+
+  store.set("skirtLength", skirtLength);
+
   let waistEase = options.waistEase;
   let seatEase = options.seatEase;
 
@@ -54,8 +57,14 @@ function BuildMainShape(part, frontPart) {
   if (frontPart == false) {
     dartSize = options.backDartSize;
   }
-
   console.log("dartSize: " + dartSize + " nrOfDarts: " + nrOfDarts);
+
+  if( dartSize <= 0 ) {
+    nrOfDarts = 0;
+  }
+
+  store.set("nrOfDarts", nrOfDarts);
+  store.set("dartSize", dartSize);
 
   let sideSeamShift = (frontPart ? -1 : 1) * options.sideSeamShiftPercentage * seat;
   
@@ -70,7 +79,7 @@ function BuildMainShape(part, frontPart) {
   points.rWaistOriginal = new Point(sideSeam, 0);
   points.rLeg = new Point(sideSeam + (options.hemBonus * seat /10), skirtLength);
 
-  let boxExtra = 30;
+  let boxExtra = 60;
   points.boxTL = new Point(-boxExtra, -boxExtra);
   points.boxTR = new Point(sideSeam + boxExtra, -boxExtra);
   points.boxBL = new Point(-boxExtra, skirtLength +options.hem + boxExtra);
@@ -144,8 +153,8 @@ function BuildMainShape(part, frontPart) {
 
     waistCurve = new Path()
       .move(points.lWaist)
-      .curve(points.lWaistCP, points.rWaistCPleft, points.rWaist);
-    waistCurve.render = false;
+      .curve(points.lWaistCP, points.rWaistCPleft, points.rWaist)
+      .setRender(false);
 
     if (nrOfDarts > 0) {
       curve1 = addDartToCurve(
@@ -156,6 +165,9 @@ function BuildMainShape(part, frontPart) {
         measurements.naturalWaistToSeat * dartDepthFactor
       );
       waistLength = curve1.left.length();
+      points.dart1Start = curve1.dart.start();
+      points.dart1Middle = curve1.dart.ops[1].to;
+      points.dart1End = curve1.dart.end();
       if (nrOfDarts > 1) {
         curve2 = addDartToCurve(
           part,
@@ -172,6 +184,9 @@ function BuildMainShape(part, frontPart) {
           curve1.dart.join(curve2.left.join(curve2.dart.join(curve2.right)))
         );
         waistPathSA = curve1.left.join(curve2.left.join(curve2.right));
+        points.dart2Start = curve2.dart.start();
+        points.dart2Middle = curve2.dart.ops[1].to;
+        points.dart2End = curve2.dart.end();
       } else {
         waistLength += curve1.right.length();
         waistPath = curve1.left.join(curve1.dart.join(curve1.right));
@@ -215,9 +230,6 @@ function BuildMainShape(part, frontPart) {
     throw "Too many iterations trying to make it fit!";
   }
 
-  // Turn the path in the other direction, to comply with the counter-clockwise guideline
-  waistPath = waistPath.reverse();
-
   if (frontPart) {
     sideSeamLength = sideSeamPath.length();
     store.set("sideSeamLength", sideSeamLength);
@@ -226,42 +238,17 @@ function BuildMainShape(part, frontPart) {
     console.log("back sideseam length: " + sideSeamLength);
   }
 
-  /*  
-$p->addPoint('pHemRD', $p->shift('pB2',   270, $this->o('sa') +HEM_DEPTH));
-$p->addPoint('pHemRR', $p->shift('pHemRD',   0, $this->o('sa')));
-$p->addPoint('pHemRU', $p->shift('pHemRR', 90, $this->o('sa')));
-if( $part == 'back' && $this->o('backVent') ) {
-    // I don't care what you're trying to create, the vent will not go higher than your hips. 
-    $backVentLength = min( $this->v('skirtLength') -$model->m('naturalWaistToHip'), $this->o('backVentLength'));
-    $p->addPoint('pV1',    $p->shift('pB1',    180, 50));
-    $p->addPoint('pV2',    $p->shift('pV1',     90, $backVentLength));
-    $p->addPoint('pVtemp', $p->shift('pV2',      0, 50));
-    $p->addPoint('pV3',    $p->shift('pVtemp',  90, 50));
-    $p->addPoint('pHemLD', $p->shift('pV1',    270, $this->o('sa') +HEM_DEPTH));
-    $p->addPoint('pHemLL', $p->shift('pHemLD', 180, $this->o('sa')));
-    $p->addPoint('pHemLU', $p->shift('pHemLL',  90, $this->o('sa')));
-    $pathString   .= ' C pH pH pC2 C pC2d pB2 pB2 L pB1 L pV1 L pV2 L pV3 L pC1 Z';
-    $pathStringSA  = 'M pV1 L pV2 L pV3 L pC1 L' . str_replace( 'M', '', $pathStringSA );
-} else {
-    $p->addPoint('pHemLD', $p->shift('pB1',    270, $this->o('sa') +HEM_DEPTH));
-    $p->addPoint('pHemLL', $p->shift('pHemLD', 180, $this->o('sa')));
-    $p->addPoint('pHemLU', $p->shift('pHemLL',  90, $this->o('sa')));
-    $pathString .= ' C pH pH pC2 C pC2d pB2 pB2 L pB1 L pC1 Z';
-    if( $part == 'back' && $this->o('zipperLocation') == 'back' ) {
-        $pathStringSA  = 'M pB1 L ' . str_replace( 'M', '', $pathStringSA ) . ' C pH pH pC2 C pC2d pB2 pB2 ';
-    }
-}
-$p->newPath( 'outline', $pathString, ['class' => 'fabric']);
-// Mark for sampler
-$p->paths['outline']->setSample(true);
-$p->newPath('outlineSA', $pathStringSA, ['class' => 'hidden']);
-$p->paths['outlineSA']->setSample(false);
-*/
 
-points.lHem = points.lLeg;
-points.rHem = points.rLeg;
+  points.lHem = points.lLeg;
+  points.rHem = points.rLeg;
 
-if (options.hem > 0) {
+  paths.hem = new Path()
+    .move(points.lLeg)
+    .line(points.rLeg)
+    .attr("class", "fabric stroke-sm")
+    .setRender(false);
+  
+  if (options.hem > 0) {
     // Create the inverse of the curve from the leg to the waist
     // Then split it at the hem level
     points.lHem = points.lLeg.shift( 270, options.hem );
@@ -272,25 +259,135 @@ if (options.hem > 0) {
 
     let sideSeamHemPath = rInversePath.split(points.rHem)[1];
 
-    //points.lLeg = lHem.clone();
-    //points.rLeg = rHem.clone();
-
     sideSeamPath = sideSeamHemPath.join( sideSeamPath );
 
-    paths.hem = new Path()
-      .move(points.lLeg)
-      .line(points.rLeg)
-      .attr("class", "fabric stroke-sm");
+    paths.hem.setRender(true);
   }
 
-  paths.seam = new Path()
+  paths.leftSide = new Path()
     .move(points.lWaist)
     .line(points.lHem)
+    .setRender(false);
+  
+  paths.bottom = new Path()
+    .move(points.lHem)
     .line(points.rHem)
-    //.line(points.rWaistOriginal)
-    .join(sideSeamPath)
-    .join(waistPath)
-    .attr("class", "fabric");
+    .setRender(false);
+  
+  paths.sideSeam = sideSeamPath.setRender(false);
+  
+  // Turn the path in the other direction, to comply with the counter-clockwise guideline
+  paths.waist = waistPath.reverse().setRender(false);
+  paths.waistSA = waistPathSA.reverse().setRender(false);
+
+  points.titleAnchor = new Point( measurements.naturalWaist/6, measurements.naturalWaistToSeat);
+  points.logoAnchor = points.titleAnchor.shift( 270, 75);
+
+  points.grainlineTop = points.lWaist.shift( 0, 50 ).shift( 270, 50 );
+  points.grainlineBottom = points.lLeg.shift( 0, 50 ).shift( 90, 50 );
+
+  if( paperless ) {
+    macro( "hd", {
+      from: points.lSeat,
+      to: points.rSeat,
+      y: points.rSeat.y
+    });
+    macro( "vd", {
+      from: points.lWaist,
+      to: points.rWaist,
+      x: points.rWaist.x +options.paperlessOffset
+    });
+    macro( "vd", {
+      from: points.lWaist,
+      to: points.lLeg,
+      x: points.lLeg.x +options.paperlessOffset
+    });
+    if (options.hem > 0) {
+      macro( "vd", {
+        from: points.lLeg,
+        to: points.lHem,
+        x: points.lLeg.x +options.paperlessOffset
+      });
+    }
+
+    if( store.get('nrOfDarts') > 0 ) {
+      macro( "hd", {
+        from: points.lWaist,
+        to: points.dart1Middle,
+        y: points.dart1Middle.y
+      });
+      macro( "vd", {
+        from: points.lWaist,
+        to: points.dart1Middle,
+        x: points.lWaist.x -options.paperlessOffset
+      });
+      macro( "hd", {
+        from: points.lWaist,
+        to: points.dart1Start,
+        y: points.dart1Start.y -options.paperlessOffset
+      });
+      macro( "hd", {
+        from: points.dart1Start,
+        to: points.dart1End,
+        y: points.dart1End.y -options.paperlessOffset
+      });
+      if( store.get('nrOfDarts') > 1 ) {
+        macro( "hd", {
+          from: points.lWaist,
+          to: points.dart2Middle,
+          y: points.dart2Middle.y
+        });
+          macro( "hd", {
+          from: points.dart1End,
+          to: points.dart2Start,
+          y: points.dart2Start.y -options.paperlessOffset
+        });
+        macro( "hd", {
+          from: points.dart2Start,
+          to: points.dart2End,
+          y: points.dart2End.y -options.paperlessOffset
+        });
+        macro( "hd", {
+          from: points.dart2End,
+          to: points.rWaist,
+          y: points.rWaist.y -options.paperlessOffset
+        });
+        macro( "vd", {
+          from: points.dart2Middle,
+          to: points.dart1Middle,
+          x: points.lWaist.x -options.paperlessOffset
+        });
+        macro( "vd", {
+          from: points.dart2Middle,
+          to: points.lSeat,
+          x: points.lWaist.x -options.paperlessOffset
+        });
+      } else {
+        macro( "hd", {
+          from: points.dart1End,
+          to: points.rWaist,
+          y: points.rWaist.y -options.paperlessOffset
+        });
+        macro( "vd", {
+          from: points.dart1Middle,
+          to: points.lSeat,
+          x: points.lWaist.x -options.paperlessOffset
+        });
+      }
+    } else {
+      macro( "hd", {
+        from: points.lWaist,
+        to: points.rWaist,
+        y: points.rWaist.y -options.paperlessOffset
+      });
+      macro( "vd", {
+        from: points.lWaist,
+        to: points.lSeat,
+        x: points.lWaist.x -options.paperlessOffset
+      });
+    }
+  }
+
 }
 
 export { BuildMainShape };
