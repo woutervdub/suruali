@@ -355,7 +355,7 @@ function BuildMainShape(part, frontPart) {
           to: points.dart2Middle,
           x: points.lWaist.x - options.paperlessOffset
         });
-          macro("vd", {
+        macro("vd", {
           from: points.dart2Middle,
           to: points.dart1Middle,
           x: points.lWaist.x - options.paperlessOffset

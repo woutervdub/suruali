@@ -77,6 +77,16 @@ export default function(part) {
   }
 
   if (paperless) {
+    macro("vd", {
+      from: points.TL,
+      to: points.BL,
+      x: points.TL.x + options.paperlessOffset
+    });
+    macro("hd", {
+      from: points.BL,
+      to: points.BR,
+      y: points.BR.y - options.paperlessOffset
+    });
   }
 
   return part;
