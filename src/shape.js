@@ -319,11 +319,6 @@ function BuildMainShape(part, frontPart) {
         to: points.dart1Middle,
         y: points.dart1Middle.y
       });
-      macro("vd", {
-        from: points.lWaist,
-        to: points.dart1Middle,
-        x: points.lWaist.x - options.paperlessOffset
-      });
       macro("hd", {
         from: points.lWaist,
         to: points.dart1Start,
@@ -356,16 +351,26 @@ function BuildMainShape(part, frontPart) {
           y: points.rWaist.y - options.paperlessOffset
         });
         macro("vd", {
+          from: points.lWaist,
+          to: points.dart2Middle,
+          x: points.lWaist.x - options.paperlessOffset
+        });
+          macro("vd", {
           from: points.dart2Middle,
           to: points.dart1Middle,
           x: points.lWaist.x - options.paperlessOffset
         });
         macro("vd", {
-          from: points.dart2Middle,
+          from: points.dart1Middle,
           to: points.lSeat,
           x: points.lWaist.x - options.paperlessOffset
         });
       } else {
+        macro("vd", {
+          from: points.lWaist,
+          to: points.dart1Middle,
+          x: points.lWaist.x - options.paperlessOffset
+        });
         macro("hd", {
           from: points.dart1End,
           to: points.rWaist,

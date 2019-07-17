@@ -46,12 +46,12 @@ export default function(part) {
   // Complete?
   if (complete) {
     macro("cutonfold", {
-        from: points.TR,
-        to: points.TL,
-        margin: 15,
-        offset: 15,
-        grainline: true
-      });
+      from: points.TR,
+      to: points.TL,
+      margin: 15,
+      offset: 15,
+      grainline: true
+    });
 
     snippets.logo = new Snippet("logo", points.logoAnchor);
 
@@ -61,7 +61,18 @@ export default function(part) {
     });
 
     if (sa) {
-      paths.sa = paths.outline.offset(sa).attr("class", "fabric sa");
+      paths.sa = new Path()
+        .move(points.TL)
+        .join(
+          new Path()
+            .move(points.TL)
+            .line(points.BL)
+            .line(points.BR)
+            .line(points.TR)
+            .offset(sa)
+        )
+        .line(points.TR)
+        .attr("class", "fabric sa");
     }
   }
 
