@@ -3,7 +3,7 @@ import { version } from "../package.json";
 // ?? 🤔 ?? --> https://en.freesewing.dev/packages/core/config
 
 export default {
-  name: "penelope",
+  name: "suruali",
   version,
   design: "woutervdub",
   code: "woutervdub",
@@ -40,18 +40,36 @@ export default {
     ]
   },
   measurements: [
+    "seatDepth",
     "naturalWaist",
     "hipsCircumference",
     "seatCircumference",
     "naturalWaistToHip",
     "naturalWaistToSeat",
+    "naturalWaistToFloor",
     "naturalWaistToKnee"
   ],
   dependencies: {},
   inject: {},
   hide: [],
-  parts: ["front", "back", "waistband"],
+  parts: ["base" /*,"front", "back", "waistband"*/],
   options: {
+    frontWaistLowerFactor: 0.07,
+    frontWaistShiftFactor: 0.007,
+    waistToHipdifference: 200,
+    frontDartWidth: 22.5,
+    frontDartDepth: 110,
+    backDartWidth: 32.5,
+    backDartDepth: 130,
+    waistCPfraction: 0.1,
+    crotchCPDownFactor: 0.35,
+    crotchCPLeftFactor: 0.60,
+    kneeReductionFactor: 0.10,
+    sideSeamShiftFactor: 0.01,
+
+    hemLength: { mm: 400, min: 150, max: 750 },
+
+
     dartMaximumDifference: 300,
     dartMinimumDifference: 180,
     dartMinimumWidth: 6,
